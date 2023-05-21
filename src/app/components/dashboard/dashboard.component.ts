@@ -40,10 +40,11 @@ export class DashboardComponent {
   saveNewBooking: Bookings = {};
   bookingData: Record<string, any>[] = [];
   COLOR_LIST: any = [];
-  private dateTime = new Date()
+  public isloaded: boolean = false;
+  private dateTime = new Date();
   public selectedDate: Date = new Date(this.dateTime.getFullYear(), this.dateTime.getMonth(), this.dateTime.getDate());
-  public currentView: View = 'Week';
-  public workHours: WorkHoursModel = { start: '9:00', end: '18:00' };
+  public currentView: View = 'Day';
+  // public workHours: WorkHoursModel = { start: '12:00', end: '18:00' };
   public workWeekDays: number[] = [2, 3, 4, 5, 6];
   public allowResizing = true;
   public allowDragDrop = true;
@@ -63,45 +64,15 @@ export class DashboardComponent {
   private selectionTarget: Element;
   public resourceDataSource: Record<string, any>[] = [];
   public staffImages: any[] = [];
-  // public resourceDataSource: Record<string, any>[] = [
-  //   {
-  //     name: "Jade", id: 1, color: "", workDays: [1, 2, 3, 4, 5, 6], startHour: "09:00", endHour: "18:00",
-  //     // availableTime: [
-  //     //   //different appointment time with color
-  //     //   { startTime: "12:30", endTime: "13:00", color: "orange" }
-  //     // ]
-  //   },
-  //   {
-  //     name: "Rossy", id: 2, color: "", workDays: [1, 2, 3, 4, 5, 6], startHour: "09:00", endHour: "18:00",
-  //     // availableTime: [
-  //     //   //different appointment time with color
-  //     //   { startTime: "10:30", endTime: "12:00", color: "red" }
-  //     // ]
-  //   },
-  //   {
-  //     name: "Jonathan", id: 3, color: "", workDays: [1, 2, 3, 4, 5, 6], startHour: "09:00", endHour: "18:00",
-  //     // availableTime: [
-  //     //   //different appointment time with color
-  //     //   { startTime: "10:30", endTime: "12:00", color: "blue" }
-  //     // ]
-  //   },
-  //   {
-  //     name: "Petterson", id: 4, color: "", workDays: [1, 2, 4, 5], startHour: "09:00", endHour: "18:00",
-  //     // availableTime: [
-  //     //   //different appointment time with color
-  //     //   { startTime: "10:30", endTime: "12:00", color: "green" }
-  //     // ]
-  //   }
-  // ]
+  public flag: boolean = true;
+  public setDifferentWorkHoursFlag: boolean = false;
+  public islayoutChanged: boolean = false;
 
   async getStaffAvailability(){
     await (await this.staffService._getStaffAvailability()).subscribe(
       async (response: any ) => {
         this.resourceDataSource = response;
-        console.log("resource datasource",this.resourceDataSource);
-        for (let data of this.resourceDataSource){
-          console.log("resource datasource workDays",data.workDays);
-        }
+        console.log("response",response);
       },
       async (error: any) => {
       }
@@ -121,7 +92,6 @@ export class DashboardComponent {
         for (let staff of response){
           this.staffImages.push({employeeId:staff.employee_id, employeeImg:staff.employeeImg});
         }
-        console.log("this is staff images",this.staffImages)
       },
       async (error: any) => {
       }
@@ -186,6 +156,13 @@ export class DashboardComponent {
       }
     }
   }
+  public getEmployeeIndex(employeeId: any) {
+    for (let [key, value] of Object.entries(this.resourceDataSource)) {
+      if (value.id === employeeId) {
+        return Number(key);
+      }
+    }
+  }
   public getWorkerName(value: ResourceDetails): string {
     return ((value as ResourceDetails).resourceData) ?
       (value as ResourceDetails).resourceData[(value as ResourceDetails).resource.textField] as string
@@ -213,15 +190,28 @@ export class DashboardComponent {
 
 
   public onActionBegin(args: ActionEventArgs): void {
+     let isEventChange: boolean = (args.requestType === 'eventChange');
+        if (args.requestType == "eventCreate" ||args.requestType == "eventChange" || args.requestType == "eventRemove" ) {
+          this.flag = false;
+        } else {
+          this.flag = true;
+        }
     this.scheduleObj.closeQuickInfoPopup();
-    let isEventChange: boolean = (args.requestType === 'eventChange');
     if ((args.requestType === 'eventCreate' && (args.data as Record<string, any>[]).length > 0) || args.requestType === 'eventChange') {
 
       let eventData: any = !isNullOrUndefined(args.data[0]) ? args.data[0] : args.data;
       let scheduleElement: Element = document.querySelector('.e-schedule');
       let scheduleObj: Schedule = ((scheduleElement as EJ2Instance).ej2_instances[0] as Schedule);
-      if (!scheduleObj.isSlotAvailable(eventData.startTime, eventData.endTime))
-        args.cancel = true;
+      console.log("this is eventData.startTime",eventData.startTime);
+      console.log("this is eventData.endTime",eventData.endTime);
+      console.log("this is eventData",eventData);
+      let resourceIndex = this.getEmployeeIndex(eventData.employeeId);
+      args.cancel = this.isValidateTime(eventData.startTime, eventData.endTime, eventData.employeeId);
+      console.log("this is args.cancel",args.cancel);
+      // if (!args.cancel) {
+      //     args.cancel = !this.scheduleObj.isSlotAvailable(eventData.startTime, eventData.endTime, resourceIndex);
+      //     console.log("this is ")
+      //   }
 
       if (!args.cancel || args.requestType === "eventChange") {
         if (args.requestType === "eventCreate") {
@@ -265,17 +255,49 @@ export class DashboardComponent {
     }
   }
 
-  public isValidateTime(startDate: Date, endDate: Date, resIndex: number): boolean {
-    var staffDetails = this.scheduleObj.getResourceCollections()[0].dataSource;
-    for (let [key, value] of Object.entries(staffDetails)) {
-      if (value.id === resIndex) {
-        const startHour: number = parseInt(value.startHour.toString().slice(0, 2), 10);
-        const endHour: number = parseInt(value.endHour.toString().slice(0, 2), 10);
+  public onActionComplete(args: ActionEventArgs): void {
+    if (args.requestType === "toolBarItemRendered" || args.requestType === "dateNavigate" || args.requestType === "viewNavigate") {
+      this.islayoutChanged = true;
+    }
+  }
 
-        if (startHour <= startDate.getHours() && endHour >= endDate.getHours()) {
-          return false;
-        } else {
-          return true
+  public isValidateTime(startDate: Date, endDate: Date, resIndex: number): boolean {
+    console.log("this is startDay",startDate.getDay());
+    var staffDetails = this.scheduleObj.getResourceCollections()[0].dataSource;
+    console.log("value.id",resIndex);
+    
+    for (let [key, value] of Object.entries(staffDetails)) {
+      let startTime;
+      let endTime;
+      console.log("this is value.id",typeof(value.id));
+      console.log("this is resIndex",typeof(resIndex));
+      if (value.id === resIndex) {
+        for(var i=0; i< value.workDays.length; i++){
+          console.log("workDays",value.workDays[i]);
+          console.log("workDays type",typeof(value.workDays[i]));
+          console.log("this is typeof startDay",typeof(startDate.getDay()));
+
+          if(value.workDays[i] === startDate.getDay()){
+            startTime = value.availability[i].startTime;
+            endTime = value.availability[i].endTime;
+            console.log("value.workDays[i]",value.workDays[i]);
+            console.log("value.workDays[i].startTime",value.workDays[i].startTime);
+          }
+        }
+        console.log("isvalidateTime");
+        console.log("this is startTime",startTime);
+        if(startTime==undefined || endTime==undefined){
+          return true;
+        }
+        else{
+          const startHour: number = parseInt(startTime.toString().slice(0, 2), 10);
+          const endHour: number = parseInt(endTime.toString().slice(0, 2), 10);
+  
+          if (startHour <= startDate.getHours() && endHour >= endDate.getHours()) {
+            return false;
+          } else {
+            return true
+          }
         }
       }
     }
@@ -295,12 +317,8 @@ export class DashboardComponent {
     return true;
   }
 
-  onRenderCell(args: RenderCellEventArgs) {
-    if (!args.element.classList.contains("e-work-hours") && !args.element.classList.contains("e-header-cells")
-      && !args.element.classList.contains("e-time-cells") && !args.element.classList.contains("e-time-slots")
-      && !args.element.classList.contains("e-work-days")) {
-      (args.element as HTMLElement).style.background = '#d3d3d3';
-    }
+  onRenderCell(args: RenderCellEventArgs):void {
+    
   }
 
   showNotification(from, align) {
@@ -617,8 +635,7 @@ public onDeleteClick(args: any): void {
       }
     }
   }
-
-  //method for retrieving and updating calender with new bookings from DB
+ 
   onBound(args: any): void {
     if (this.temp) {
       let schObj = (document.querySelector(".e-schedule") as any)
@@ -633,7 +650,53 @@ public onDeleteClick(args: any): void {
         schObj.eventSettings.dataSource = JSON.parse(data);
       };
       ajax.send();
+
+      let verticalViews: boolean = ['Day', 'Week'].indexOf(this.scheduleObj.currentView) > - 1;
+      let currTime: Date = new Date(); 
+      let hour = currTime.getHours().toString();
+      hour = (hour.length > 1 ? hour : '0' + hour) + ':';
+      let minute = currTime.getMinutes().toString();
+      let text = hour + (minute.length > 1 ? minute : '0' + minute);
+
+      if (verticalViews) {
+        this.scheduleObj.scrollTo(text, undefined);
+      }
+///////////////
       this.temp = false;
+    }
+
+    if (this.islayoutChanged) {
+      var renderedDates = this.scheduleObj.activeView.getRenderDates();
+      this.scheduleObj.resetWorkHours();
+      for (var i = 0; i < renderedDates.length; i++) {
+        var dayIndex = renderedDates[i].getDay();
+        for (let [key, value] of Object.entries(this.resourceDataSource)) {
+          let cnt = Number(key);
+          // this.getWorkHours(dayIndex, value, cnt);
+          let startTime: any;
+          let endTime: any;
+          if(value.workDays.length>0){
+            for (let j = 0; j < value.workDays.length; j++) {
+              if (value.workDays[j] == dayIndex) {
+                if(value.availability[j] && value.availability[j].startTime){
+                  startTime = value.availability[j].startTime;
+                  endTime = value.availability[j].endTime;
+                  this.scheduleObj.setWorkHours(
+                    [renderedDates[i]],
+                    startTime,
+                    endTime,
+                    cnt
+                  );
+                  // workHours[cnt] = { startHour: startTime, endHour: endTime, groupIndex: cnt };
+                  // console.log("this is workHours",workHours[cnt]);
+                }
+              }
+            }
+          }                                                       
+          
+        }
+          
+      }
     }
   }
 

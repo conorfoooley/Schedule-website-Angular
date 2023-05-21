@@ -35,18 +35,18 @@
                   [currentView]="currentView" 
                   [group]="group" 
                   (actionBegin)="onActionBegin($event)" 
-                  (renderCell)="onRenderCell($event)"
+                  (dataBound)="onBound($event)" 
                   (drag)="onItemDrag($event)" 
                   (popupOpen)="onPopupOpen($event)" 
+                  (renderCell)="onRenderCell($event)"
                   [eventSettings]="eventSettings" 
-                  [workHours]="workHours" 
                   [workDays]='workWeekDays'
-                  (dataBound)="onBound($event)" 
                   [allowResizing]="allowResizing" 
                   [allowDragAndDrop]="allowDragDrop" 
                   (cellClick)="onCellClick($event)"
                   [showHeaderBar]="showHeaderBar"
-                >
+                  (actionComplete)="onActionComplete($event)"
+                  >
                 <ng-template #quickInfoTemplatesHeader let-data>
                   <ng-container 
                       [ngTemplateOutlet]="data.elementType == 'cell' ? cellHeader : eventHeader" 

@@ -2,7 +2,7 @@
     display: none;
 }
 .img-logo {
-    width: 150px;
+    width: 200px;
     height: auto;
 }
 .logo {
@@ -10,9 +10,9 @@
     justify-content: center !important;
 }
 .sidebar-wrapper{
-    background: #361b5e !important;
+    background: #320a57 !important;
 }
 .sidebar{
-    background: #532599 !important;
+    background: #320a57 !important;
     border-radius: 10px !important;
 }

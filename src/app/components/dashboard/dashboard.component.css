@@ -39,6 +39,10 @@
 .schedule-cell-dimension.e-schedule .e-vertical-view .e-time-cells-wrap table td,
 .schedule-cell-dimension.e-schedule .e-vertical-view .e-work-cells {
     height: 50px;
+    background: #d3d3d3;
+}
+.e-schedule .e-vertical-view .e-time-cells-wrap table td{
+  background: white !important;
 }
 
 .schedule-cell-dimension.e-schedule .e-month-view .e-work-cells,
@@ -230,6 +234,9 @@
 }
 .fa-star-custom:hover{
   cursor: pointer;
+}
+.e-work-hours{
+  background: white !important;
 }
 
 
