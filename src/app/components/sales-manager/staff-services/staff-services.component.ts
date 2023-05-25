@@ -428,6 +428,7 @@ export class StaffServicesComponent implements OnInit {
       active : true
     }];
 
+    console.log("this is EDIT_CATEGORY_SELECTED_COLOR",this.EDIT_CATEGORY_SELECTED_COLOR);
     
 
     await (await this.staffService._updateServiceCategory(data)).subscribe(

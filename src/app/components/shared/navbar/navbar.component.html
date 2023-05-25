@@ -59,6 +59,132 @@
         </div>
     </div>
 </nav>
+
+<div class="modal info-modal" tabindex="-1"  role="dialog" [ngStyle]="{'display': MODEL_OPEN ? 'block' : 'none' }">
+    <div class="modal-dialog modal-dialog-scrollable model-transaction" role="document">
+        <div class="modal-content">
+           
+            <div class="modal-body ">
+              <div class="row">
+                <div class="col-md-4 col-sm-4 first">
+                  <img src="https://media.istockphoto.com/id/1280385511/photo/colorful-background.jpg?s=1024x1024&w=is&k=20&c=vd0BzayI498v8pOGlhzbvTiNpNf7HF5dClK4Qvy4Jac="   class="rounded mx-auto d-block" class="profile-image">
+                    <h5><b> {{ POP_NAME }} </b></h5>
+                    
+                    <span> {{ POP_EMAIL }} </span>
+                    <span>Gender: {{ POP_GENDER }}</span>
+                    <span>Date of birth: {{ POP_DOB }}</span>
+                    
+                </div>
+                <div class="col-md-8 col-sm-8 second"> 
+                  <div>
+                    <span class="heading">Client Information</span>
+                    <i class="fa fa-close" style="cursor: pointer; float: right; font-size: 20px;" (click)="_closeModel()"></i>
+                  </div>
+                  
+                  <div class="tabs-btn">
+                  	<button class="btn btn-info tabs active-tabs" [class.active-tabs]="NOTES" (click)="_changeTabs(1)">Notes </button>
+                    <button class="btn btn-info tabs " [class.active-tabs]="TRANSACTION" (click)="_changeTabs(2)">Transaction </button>
+                    <button class="btn btn-info tabs " [class.active-tabs]="REVIEWS" (click)="_changeTabs(3)">GoManage Star Rating </button>
+                  </div>
+
+                  <!-- Notes List -->
+
+                  <div class="information"  *ngIf="NOTES">
+
+                    <div class="inner-info">
+                      <div class="info_date">
+                        <input type="datetime-local" [(ngModel)]="ADD_NOTE_DATE">
+                        <input type="text" [(ngModel)]="ADD_NOTE_COMMENT">
+                      </div>
+                      <i class="fa fa-save save-note"  (click)="_addNote()"></i>
+                      
+                    </div>
+                  
+                  <div class="inner-info" *ngFor="let note of CLIENT_NOTES; let i = index">
+                    <div class="info_date">
+                      <input type="datetime-local" [value]="note.date_time" disabled >
+                      <input type="text" [value]="note.comment" (input)="_noteInputChange( note.id , i ,'comment' , $event.target.value)">
+                    </div>
+                    <i class="fa fa-save save-note"  (click)="_updateNote(note.id)"></i>
+                    <i class="fa fa-trash delete-note" (click)="_deleteNote(note.id)"></i>
+                  </div>
+
+                </div>
+
+                  <!-- Transaction List -->
+
+                  <div class="information" *ngIf="TRANSACTION">
+                    
+                    <!-- <div class="inner-info" >
+                      <div class="info_date">
+                        <input type="datetime-local" [(ngModel)]="ADD_TRANSACTION_DATE">
+                        <input  type="text" 
+                                [(ngModel)]="ADD_TRANSACTION_SERVICES"  
+                                class="services" 
+                                style="border-right: 1px solid;width: 46%;"
+                                
+                                >
+                        <input type="text" [(ngModel)]="ADD_TRANSACTION_PRICE" style="width: 17%;" >
+                      </div>
+                      <i class="fa fa-save save-note"  (click)="_addTransaction()"></i>
+                    </div> -->
+
+                    <div class="no-transaction-found" *ngIf="TRANSACTION_LIST.length == 0">
+                      No Transaction Found
+                    </div>
+
+                    <div class="inner-info" *ngFor="let transaction of TRANSACTION_LIST; let i = index">
+                      <div class="info_date">
+                        <input  type="datetime-local" 
+                                disabled 
+                                (input)="_transactionInputChange( transaction.id , i ,'date_time' , $event.target.value)"
+                                [value]="transaction.transaction_date"
+                                >
+                        <input  type="text" 
+                                [value]="transaction.transaction_name" 
+                                class="services" 
+                                readonly
+                                style="border-right: 1px solid;width: 46%;"
+                                (input)="_transactionInputChange( transaction.id , i ,'services_name' , $event.target.value)"
+                                >
+                        <input  type="text" 
+                                [value]="'€'+ transaction.transaction_value" 
+                                style="width: 17%;" 
+                                readonly
+                                (input)="_transactionInputChange( transaction.id , i ,'price' , $event.target.value)"
+                                >
+                      </div>
+                      <!-- <i class="fa fa-save save-note"  (click)="_updateTransaction(transaction.id)"></i> -->
+                      <!-- <i class="fa fa-trash delete-note" (click)="_deleteTranaction(transaction.id)"></i> -->
+                    </div>
+                  </div>
+
+                  <!-- Start rating List -->
+
+                  <div class="information" *ngIf="REVIEWS">
+                    <div class="full_ine" *ngFor="let review of this.CLIENT_REVIEWS">
+                    <p class="rating-date-time"> {{ review.time }} {{ review.date }} </p>
+                    <p class="rating-comment"> {{ review.comment }} </p>   
+                    <p class="ine2 rating"> 
+                      <span 
+                        class="fa star-rating-checked" 
+                        *ngFor="let rating_value of [1 , 2, 3 ,4 , 5]" 
+                        [ngClass]="rating_value <= review.rating ? 'fa-star' : 'fa-star-o'"
+                        
+                        ></span>
+                     
+                    </p>
+                    </div>
+
+
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+  </div>
+     
+</div>
 <style>
     
 </style>

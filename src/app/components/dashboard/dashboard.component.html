@@ -69,14 +69,15 @@
                 </ng-template>
 
                 <ng-template #eventSettingsTemplate let-data>
-                  <div class='template-wrap custom-cell' [style.background-color]="getColorByCategory(data.service)">
+                  <div class='template-wrap custom-cell' [style.background-color]="getColorByCategory(data.categoryId)">
                     <div class="e-subject" style="width:100%">
                       <!-- <div style="width:100%; float: left;"> Service Name : {{data.service}}  #{{data.id}}</div> -->
                       <div style="width:100%; float: left;"> {{data.service}} </div>
                     </div>
-                    <div class="e-location" style="width:100%" > Name : {{data.firstName}}</div>
+                    <div class="e-location" style="width:100%; font-size:11px">{{data.firstName}} {{data.lastName}}</div>
                       <!-- <div>{{data.lastName}}</div> -->
                     <div style="width: 100%">{{ data.startTime | date: "HH:mm"}} - {{ data.endTime |date: "HH:mm"}} </div>
+                    <i class="fa-pencil-custom fa fa-pencil-square-o" (click)="onPencilIconClick($event,data.firstName,data.lastName)" aria-hidden="true"></i>
                     <i class="fa-eur-custom fa fa-eur" [routerLink]="['/make-a-sale']" (click)="onEuroIconClick($event)" aria-hidden="true"></i>
                     <i class="fa-star-custom fa fa-star" aria-hidden="true"></i>
                   </div>
@@ -173,6 +174,21 @@
         </div>
       </div>
     </div> <!-- end card -->
-
+    <div class="modal message-model" tabindex="-1"  role="dialog" [ngStyle]="{'display': MODEL_OPEN ? 'block' : 'none' }">
+      <div class="modal-dialog modal-dialog-scrollable" role="document">
+          <div class="modal-content">
+              <div class="modal-header mod-header">
+                <label class="header-text">Send message to {{CLIENT_NAME}}</label>
+                <i class="fa fa-close" style="cursor: pointer; float: right; font-size: 20px;" (click)="_closeModel()"></i>
+              </div>
+              <div class="modal-body mod-conetnt">
+                <textarea class="form-control message-input"></textarea>
+                <div class="confirm-div">
+                  <button class="btn submit-button">Send</button>
+                </div>
+              </div>
+          </div>
+      </div>
+    </div>
   </div>
 </div>

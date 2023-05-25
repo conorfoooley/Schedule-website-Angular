@@ -36,7 +36,7 @@ export class DashboardComponent {
   public group: GroupModel = {
     resources: ['Employees']
   };
-
+  MODEL_OPEN: boolean = false;
   saveNewBooking: Bookings = {};
   bookingData: Record<string, any>[] = [];
   COLOR_LIST: any = [];
@@ -67,12 +67,12 @@ export class DashboardComponent {
   public flag: boolean = true;
   public setDifferentWorkHoursFlag: boolean = false;
   public islayoutChanged: boolean = false;
+  CLIENT_NAME: string;
 
   async getStaffAvailability(){
     await (await this.staffService._getStaffAvailability()).subscribe(
       async (response: any ) => {
         this.resourceDataSource = response;
-        console.log("response",response);
       },
       async (error: any) => {
       }
@@ -111,9 +111,9 @@ export class DashboardComponent {
   async getStaffCategories() {
     await (await this.staffService._getCategoryList()).subscribe(
       async (response: any ) => {
+        this.CATEGORIES = response;
         for (let category of response){
           this.SERVICE_CATEGORY_LIST.push(category.categoryName);
-          this.CATEGORIES.push(category);
         }
       },
       async (error: any) => {
@@ -202,16 +202,8 @@ export class DashboardComponent {
       let eventData: any = !isNullOrUndefined(args.data[0]) ? args.data[0] : args.data;
       let scheduleElement: Element = document.querySelector('.e-schedule');
       let scheduleObj: Schedule = ((scheduleElement as EJ2Instance).ej2_instances[0] as Schedule);
-      console.log("this is eventData.startTime",eventData.startTime);
-      console.log("this is eventData.endTime",eventData.endTime);
-      console.log("this is eventData",eventData);
       let resourceIndex = this.getEmployeeIndex(eventData.employeeId);
       args.cancel = this.isValidateTime(eventData.startTime, eventData.endTime, eventData.employeeId);
-      console.log("this is args.cancel",args.cancel);
-      // if (!args.cancel) {
-      //     args.cancel = !this.scheduleObj.isSlotAvailable(eventData.startTime, eventData.endTime, resourceIndex);
-      //     console.log("this is ")
-      //   }
 
       if (!args.cancel || args.requestType === "eventChange") {
         if (args.requestType === "eventCreate") {
@@ -262,30 +254,18 @@ export class DashboardComponent {
   }
 
   public isValidateTime(startDate: Date, endDate: Date, resIndex: number): boolean {
-    console.log("this is startDay",startDate.getDay());
     var staffDetails = this.scheduleObj.getResourceCollections()[0].dataSource;
-    console.log("value.id",resIndex);
     
     for (let [key, value] of Object.entries(staffDetails)) {
       let startTime;
       let endTime;
-      console.log("this is value.id",typeof(value.id));
-      console.log("this is resIndex",typeof(resIndex));
       if (value.id === resIndex) {
         for(var i=0; i< value.workDays.length; i++){
-          console.log("workDays",value.workDays[i]);
-          console.log("workDays type",typeof(value.workDays[i]));
-          console.log("this is typeof startDay",typeof(startDate.getDay()));
-
           if(value.workDays[i] === startDate.getDay()){
             startTime = value.availability[i].startTime;
             endTime = value.availability[i].endTime;
-            console.log("value.workDays[i]",value.workDays[i]);
-            console.log("value.workDays[i].startTime",value.workDays[i].startTime);
           }
         }
-        console.log("isvalidateTime");
-        console.log("this is startTime",startTime);
         if(startTime==undefined || endTime==undefined){
           return true;
         }
@@ -397,12 +377,14 @@ export class DashboardComponent {
       }
     );
   }
-  public getColorByCategory(serviceName) {
+  
+  public getColorByCategory(categoryId) {
+    console.log("data",categoryId);
     let colourId;
     let colourValue;
-    for (let staffService of this.staffServices) {
-      if ((staffService.serviceName) === serviceName) {
-        colourId = staffService.colourId;
+    for (let category of this.CATEGORIES) {
+      if ((category.id) === Number(categoryId)) {
+        colourId = category.colourId;
       }
     }
     for (let color of this.COLOR_LIST) {
@@ -586,6 +568,14 @@ export class DashboardComponent {
   public onEuroIconClick(event: any) {
     event.stopPropagation();
   }
+  public onPencilIconClick(event: any, firstName: string, lastName: string) {
+    event.stopPropagation();
+    this.MODEL_OPEN = true;
+    this.CLIENT_NAME = firstName +" "+ lastName;
+  }
+  _closeModel(){
+    this.MODEL_OPEN = false;
+  }
   public onEditClick(args: any): void {
     if (this.selectionTarget) {
     let eventData: { [key: string]: Object } = this.scheduleObj.getEventDetails(this.selectionTarget) as { [key: string]: Object };
@@ -670,6 +660,22 @@ public onDeleteClick(args: any): void {
       this.scheduleObj.resetWorkHours();
       for (var i = 0; i < renderedDates.length; i++) {
         var dayIndex = renderedDates[i].getDay();
+        var year = renderedDates[i].getFullYear();
+        var month = renderedDates[i].getMonth()+1;
+        var day = renderedDates[i].getDate();
+        var month_string;
+        var day_string;
+        if(month<10) {
+          month_string = "0"+month;
+        } else{
+          month_string = ""+month;
+        }
+        if(day<10) {
+          day_string = "0"+day;
+        } else{ 
+          day_string = day;
+        }
+        var date = year+"-"+month_string+"-"+day_string;
         for (let [key, value] of Object.entries(this.resourceDataSource)) {
           let cnt = Number(key);
           // this.getWorkHours(dayIndex, value, cnt);
@@ -677,7 +683,7 @@ public onDeleteClick(args: any): void {
           let endTime: any;
           if(value.workDays.length>0){
             for (let j = 0; j < value.workDays.length; j++) {
-              if (value.workDays[j] == dayIndex) {
+              if (value.workDays[j] == date) {
                 if(value.availability[j] && value.availability[j].startTime){
                   startTime = value.availability[j].startTime;
                   endTime = value.availability[j].endTime;

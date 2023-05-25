@@ -39,6 +39,8 @@ export class ClientListComponent implements OnInit {
   TRANSACTION: boolean = false;
   REVIEWS: boolean = false;
   POP_EMAIL: string = '';
+  POP_GENDER: string = '';
+  POP_DOB: string = '';
   POP_NAME: string = '';
   POP_CLIENT_ID: string = '';
   ADD_CLIET_FORM: FormGroup;
@@ -271,6 +273,8 @@ export class ClientListComponent implements OnInit {
       this.POP_EMAIL = user[0].email;
       this.POP_NAME = user[0].givenName+" "+user[0].familyName;
       this.POP_CLIENT_ID = user[0].userGMID;
+      this.POP_GENDER = user[0].gender;
+      this.POP_DOB = user[0].dateOfBirth;
     }
 
     this.ADD_NOTE_DATE = await  this._getCurrentDateTime();
