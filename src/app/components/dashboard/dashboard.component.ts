@@ -37,6 +37,7 @@ export class DashboardComponent {
     resources: ['Employees']
   };
   MODEL_OPEN: boolean = false;
+  CONFIRM_MODEL_OPEN: boolean = false;
   saveNewBooking: Bookings = {};
   bookingData: Record<string, any>[] = [];
   COLOR_LIST: any = [];
@@ -68,6 +69,10 @@ export class DashboardComponent {
   public setDifferentWorkHoursFlag: boolean = false;
   public islayoutChanged: boolean = false;
   CLIENT_NAME: string;
+  CLIENT_PHONE: any;
+  MASSAGE_CLIENT: string;
+  CLIENT_NAME_PHONE: string;
+  RESPOND_MESSAGE: string;
 
   async getStaffAvailability(){
     await (await this.staffService._getStaffAvailability()).subscribe(
@@ -255,13 +260,29 @@ export class DashboardComponent {
 
   public isValidateTime(startDate: Date, endDate: Date, resIndex: number): boolean {
     var staffDetails = this.scheduleObj.getResourceCollections()[0].dataSource;
-    
+    var year = startDate.getFullYear();
+    var month = startDate.getMonth()+1;
+    var day = startDate.getDate();
+    var month_string;
+    var day_string;
+    if(month<10) {
+      month_string = "0"+month;
+    } else{
+      month_string = ""+month;
+    }
+    if(day<10) {
+      day_string = "0"+day;
+    } else{ 
+      day_string = day;
+    }
+    var date = year+"-"+month_string+"-"+day_string;
+    console.log("this is date",date);
     for (let [key, value] of Object.entries(staffDetails)) {
       let startTime;
       let endTime;
       if (value.id === resIndex) {
         for(var i=0; i< value.workDays.length; i++){
-          if(value.workDays[i] === startDate.getDay()){
+          if(value.workDays[i] === date){
             startTime = value.availability[i].startTime;
             endTime = value.availability[i].endTime;
           }
@@ -379,7 +400,6 @@ export class DashboardComponent {
   }
   
   public getColorByCategory(categoryId) {
-    console.log("data",categoryId);
     let colourId;
     let colourValue;
     for (let category of this.CATEGORIES) {
@@ -568,13 +588,45 @@ export class DashboardComponent {
   public onEuroIconClick(event: any) {
     event.stopPropagation();
   }
-  public onPencilIconClick(event: any, firstName: string, lastName: string) {
+  public onPencilIconClick(event: any, firstName: string, lastName: string, phoneNumber: any) {
     event.stopPropagation();
     this.MODEL_OPEN = true;
+    this.MASSAGE_CLIENT = "";
+    console.log("...",phoneNumber);
     this.CLIENT_NAME = firstName +" "+ lastName;
+    this.CLIENT_PHONE = phoneNumber;
+    this.CLIENT_NAME_PHONE = firstName +" "+ lastName+ "(" + phoneNumber + ")";
   }
   _closeModel(){
     this.MODEL_OPEN = false;
+  }
+  _closeConfirmModel(){
+    this.CONFIRM_MODEL_OPEN = false;
+  }
+  async _sendMessageToClient(){
+    console.log("this is phone number",this.CLIENT_PHONE);
+    console.log("this is message",this.MASSAGE_CLIENT);
+    this._closeModel();
+    this.CONFIRM_MODEL_OPEN = true;
+    let data = {
+      phoneNumber: this.CLIENT_PHONE,
+      smsMessage: this.MASSAGE_CLIENT
+    }
+    await (await this.schedularService.sendMessageToClient(data)).subscribe(
+      async (response: any ) => {
+        console.log("response",response);
+        this.RESPOND_MESSAGE = "Message was sent successfully"
+      },
+      async (error: any) => {
+        if(error.status==200){
+          this.RESPOND_MESSAGE = error.error.text;
+        }
+        else{
+          this.RESPOND_MESSAGE = "Message was not sent";
+        }
+      }
+    );
+
   }
   public onEditClick(args: any): void {
     if (this.selectionTarget) {

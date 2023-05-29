@@ -12,9 +12,6 @@ app.config<br /><br />
 ### __Running Application Locally__
 the configuration fo running application in different environments is located in the auth_config_<env>.json
 <br /><br />
-Node version: 10
-<br />
-Angular version: 11
 _To run against UAT environment execute the command_
 <br />
 <code> ng serve -c dev

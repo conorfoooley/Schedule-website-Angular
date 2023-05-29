@@ -43,6 +43,11 @@ export class ConfigService {
     this.http.put<Bookings>(this.configUrl + 'updateBookings/' + updateBooking.id, updateBooking)
       .subscribe(data => this.postId = data.id);
   }
+  sendMessageToClient(data: any) {
+    const headers = { 'content-type': 'application/json' }
+    const body = JSON.stringify(data);
+    return this.http.post(this.configUrl + '/messaging/customSmsMessage', body, { 'headers': headers });
+  }
 
   private handleError(error: HttpErrorResponse) {
     if (error.status === 0) {

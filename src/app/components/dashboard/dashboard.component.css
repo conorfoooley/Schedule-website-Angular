@@ -109,13 +109,12 @@
   font-weight: bold;
 }
 .e-schedule .e-vertical-view .e-day-wrapper .e-appointment {
-  /* width: 100% !important; */
+  width: 100% !important;
   /* min-height: 50px !important; */
   margin-left: 0px !important;
   height: auto !important;
   background-color: unset !important;
   border: unset !important;
-  margin-left: 4px !important;
 }
 .custom-cell {
   height: 100% !important;
@@ -309,4 +308,55 @@
   font-size: 21px !important;
   padding-left: 20px !important;
   color: #320a57 !important;
+}
+
+.modal-product {
+  width: 30% !important;
+  margin-top: 6%;
+  margin-left: 34%;
+}
+.message-model {
+  /* position: relative;
+  top: 20% !important; */
+}
+.confirm-modal {
+  .modal-dialog {
+    width: 30% !important;
+    margin-top: 15%;
+  }
+  .right-icon {
+    position: absolute;
+    border: 1px solid black;
+    height: 50px;
+    width: 50px;
+    margin-left: 43%;
+    top: -26px;
+    font-size: 22px;
+    padding: 2.5%;
+    border-radius: 50%;
+    background-color: #6cd038;
+  }
+
+  .rights {
+    margin-left: 0.5rem;
+    color: white;
+  }
+
+  .mod-header {
+    border-bottom: none !important;
+  }
+  .mod-footer {
+    border-bottom: none !important;
+  }
+
+  .confirm-div {
+    margin-top: 40px !important;
+  }
+
+  .confirm {
+    padding-right: 35px;
+    padding-left: 35px;
+    background-color: #20b61a;
+    color: white;
+  }
 }
